@@ -25,7 +25,7 @@ import { createFiles, executeCommands, listFiles, readFiles } from "./tools";
 import { Sandbox } from "@e2b/code-interpreter";
 import * as z from "zod/v4";
 import "dotenv/config";
-import { ChatOllama } from "@langchain/ollama";
+
 const model = new ChatGoogleGenerativeAI({
   model: "gemini-2.5-pro",
   temperature: 0,
@@ -125,7 +125,7 @@ async function codeGenerator(state: z.infer<typeof AgentState>) {
     state["plan"] +
     `Here is the folder structure: ${fileList}. Write files to appropriate path`;
 
-  if (state.resultAnalysis.solution.length > 0) {
+  if (state.resultAnalysis.hasError) {
     prompt += `Make sure not to repeat this error or try to solve this error. Here is the solution: ${state.resultAnalysis.solution}`;
   }
   const response = await model

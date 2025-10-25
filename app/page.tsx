@@ -1,55 +1,44 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { caller, getQueryClient, trpc } from "@/trpc/server";
-import {
-  dehydrate,
-  HydrationBoundary,
-  useMutation,
-  useQuery,
-} from "@tanstack/react-query";
-import { Client } from "./client";
-import { Suspense, useState } from "react";
-import { useTRPC } from "@/trpc/client";
 import { Input } from "@/components/ui/input";
+import { useTRPC } from "@/trpc/client";
+import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { toast } from "sonner";
 
 export default function Home() {
-  // const queryClient = getQueryClient();
-
-  // void queryClient.prefetchQuery(trpc.hello.queryOptions({ text: "Sameed" }));
-  // const data = await caller.hello({ text: "Sameedd" });
+  const router = useRouter();
 
   const [value, setValue] = useState("");
 
   const trpc = useTRPC();
-  const { data: messages } = useQuery(trpc.messages.getMany.queryOptions());
 
-  const createMessage = useMutation(
-    trpc.messages.create.mutationOptions({
-      onSuccess: () => {
-        toast.success("Message created");
+  const createProject = useMutation(
+    trpc.projects.create.mutationOptions({
+      onError: (error) => {
+        toast.error(error.message);
+      },
+      onSuccess: (data) => {
+        router.push(`projects/${data.id}`);
       },
     })
   );
   return (
-    // <HydrationBoundary state={dehydrate(queryClient)}>
-    //   <Suspense fallback={<p>Loading...</p>}>
-    //     <Client />
-    <>
-      <Input
-        type="text"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-      />
-      <Button
-        disabled={createMessage.isPending}
-        onClick={() => createMessage.mutate({ value })}
-      >
-        Invoke Background Job
-      </Button>
-      <p>{JSON.stringify(messages, null, 2)}</p>
-    </>
-    //   </Suspense>
-    // </HydrationBoundary>
+    <div className="h-screen w-full flex items-center justify-center">
+      <div className="w-1/2 flex items-center justify-center flex-col gap-y-5">
+        <Input
+          type="text"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+        />
+        <Button
+          disabled={createProject.isPending}
+          onClick={() => createProject.mutate({ value })}
+        >
+          Submit
+        </Button>
+      </div>
+    </div>
   );
 }

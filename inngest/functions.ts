@@ -54,9 +54,13 @@ export const codeGeneration = inngest.createFunction(
     // TODO: add error message to db and save codex_responses in the db
     // Add files
     await step.run("save-result", async () => {
+      if (!event.data.projectId) {
+        throw new Error("Missing projectId in event data");
+      }
       if (codex_response.resultAnalysis.hasError) {
         return await prisma.message.create({
           data: {
+            projectId: event.data.projectId,
             content: "Something went wrong. Please try again!",
             role: "ASSISTANT",
             type: "ERROR",
@@ -66,6 +70,7 @@ export const codeGeneration = inngest.createFunction(
 
       return await prisma.message.create({
         data: {
+          projectId: event.data.projectId,
           role: "ASSISTANT",
           content: codex_response.finalReport,
           type: "RESULT",
