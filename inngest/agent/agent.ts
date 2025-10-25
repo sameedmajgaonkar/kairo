@@ -151,7 +151,8 @@ async function codeExecutor(state: z.infer<typeof AgentState>) {
   const result = { stderr: "", stdout: "", exitCode: 0 };
 
   console.log("Code executed in the sandbox");
-  console.log(sandbox.getHost(3000));
+  console.log(`https://${sandbox.getHost(3000)}`);
+
   return result.stderr
     ? {
         stderr: result.stderr,

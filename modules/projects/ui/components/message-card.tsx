@@ -56,8 +56,10 @@ const AssistantMessage = ({
         {fragment && (
           <FragmentCard
             fragment={fragment}
-            isActiveFragment={false}
-            onFragmentClick={() => {}}
+            isActiveFragment={isActiveFragment}
+            onFragmentClick={() => {
+              onFragmentClick(fragment);
+            }}
           />
         )}
       </div>
@@ -74,6 +76,7 @@ const FragmentCard = ({
   isActiveFragment,
   onFragmentClick,
 }: FragmentCardProps) => {
+  console.log(isActiveFragment);
   return (
     <button
       className={cn(
