@@ -182,7 +182,7 @@ async function resultAnalyzer(state: z.infer<typeof AgentState>) {
     ),
   ]);
 
-  if (state.status == "success" && response.hasError == false) {
+  if (state.status === "success" && response.hasError === false) {
     return new Command({
       update: {
         finalReport: response.finalReport,

@@ -18,6 +18,7 @@ export const codeGeneration = inngest.createFunction(
       timeoutMs: 3600000,
     });
 
+    // Run codex agent
     await step.run("run-code-generation-graph", async () => {
       const response = await codex.invoke(
         {
@@ -48,11 +49,7 @@ export const codeGeneration = inngest.createFunction(
 
     const host = sandbox.getHost(3000);
     const sandboxUrl = `https://${host}`;
-    /**
-     * TODO : Langgraph
-     */
-    // TODO: add error message to db and save codex_responses in the db
-    // Add files
+
     await step.run("save-result", async () => {
       if (!event.data.projectId) {
         throw new Error("Missing projectId in event data");
