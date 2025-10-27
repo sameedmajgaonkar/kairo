@@ -19,6 +19,9 @@ const ShimmerMessages = () => {
 
   useEffect(() => {
     const interval = setInterval(() => {
+      if (msgIdx == messages.length - 1) {
+        setMsgIdx(0);
+      }
       setMsgIdx((prev) => prev + 1);
     }, 2000);
 

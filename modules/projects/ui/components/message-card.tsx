@@ -44,8 +44,8 @@ const AssistantMessage = ({
       )}
     >
       <div className="flex items-center gap-2 mb-2">
-        <span className="text-sm font-medium flex gap-1 tracking-widest">
-          <Gitlab /> CODEX
+        <span className="text-sm font-medium flex gap-1 tracking-wider">
+          Kairo
         </span>
         <span className="text-xs text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
           {format(message.createdAt, "HH:mm 'on' MMM dd, yyyy")}

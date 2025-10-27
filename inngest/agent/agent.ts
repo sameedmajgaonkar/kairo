@@ -148,8 +148,14 @@ async function codeExecutor(state: z.infer<typeof AgentState>) {
   console.log("Create files in the sandbox");
 
   const sandbox = await Sandbox.connect(state.sandboxId);
-  const result = { stderr: "", stdout: "", exitCode: 0 };
 
+  await sandbox.commands.run("sudo su");
+  await sandbox.commands.run("rm -rf .next");
+  await sandbox.commands.run("npm cache clean --force");
+
+  const result = await sandbox.commands.run("bash /compile_page.sh", {
+    background: true,
+  });
   console.log("Code executed in the sandbox");
   console.log(`https://${sandbox.getHost(3000)}`);
 
@@ -222,4 +228,4 @@ const graph = new StateGraph(AgentState)
   .addEdge("codeGenerator", "codeExecutor")
   .addEdge("codeExecutor", "resultAnalyzer");
 
-export const codex = graph.compile({ checkpointer: new MemorySaver() });
+export const kairo = graph.compile({ checkpointer: new MemorySaver() });

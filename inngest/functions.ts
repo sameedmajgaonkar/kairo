@@ -3,10 +3,11 @@ import "dotenv/config";
 import * as z from "zod/v4";
 import { inngest } from "./client";
 import { AgentState } from "./schema";
-import { codex } from "./agent/agent";
+import { kairo } from "./agent/agent";
 import prisma from "@/lib/prisma";
 
-let codex_response: z.infer<typeof AgentState>;
+let kairo_response: z.infer<typeof AgentState>;
+let sandboxUrl: string;
 
 export const codeGeneration = inngest.createFunction(
   { id: "code-generation" },
@@ -14,13 +15,14 @@ export const codeGeneration = inngest.createFunction(
   async ({ event, step }) => {
     // Create a sandbox using prebuilt template
 
-    const sandbox = await Sandbox.create("codex-nextjs-test-1718", {
-      timeoutMs: 3600000,
-    });
-
     // Run codex agent
     await step.run("run-code-generation-graph", async () => {
-      const response = await codex.invoke(
+      const sandbox = await Sandbox.create("dk2p5fs1dibg7w57xpdc", {
+        timeoutMs: 3600000,
+      });
+      const host = sandbox.getHost(3000);
+      sandboxUrl = `https://${host}`;
+      const response = await kairo.invoke(
         {
           messages: [],
           userRequest: event.data.value,
@@ -42,19 +44,16 @@ export const codeGeneration = inngest.createFunction(
         },
         { configurable: { thread_id: "1" } }
       );
-      codex_response = response;
+      kairo_response = response;
     });
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    const host = sandbox.getHost(3000);
-    const sandboxUrl = `https://${host}`;
 
     await step.run("save-result", async () => {
       if (!event.data.projectId) {
         throw new Error("Missing projectId in event data");
       }
-      if (codex_response.resultAnalysis.hasError) {
+      if (kairo_response.resultAnalysis.hasError) {
         return await prisma.message.create({
           data: {
             projectId: event.data.projectId,
@@ -69,18 +68,18 @@ export const codeGeneration = inngest.createFunction(
         data: {
           projectId: event.data.projectId,
           role: "ASSISTANT",
-          content: codex_response.finalReport,
+          content: kairo_response.finalReport,
           type: "RESULT",
           fragment: {
             create: {
               title: "Fragment",
               sandboxUrl,
-              files: codex_response.files,
+              files: kairo_response.files,
             },
           },
         },
       });
     });
-    return { message: codex_response.messages, sandboxUrl };
+    return { message: kairo_response.messages, sandboxUrl };
   }
 );
