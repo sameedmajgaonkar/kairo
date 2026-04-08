@@ -1,28 +1,24 @@
-import { Gitlab } from "lucide-react";
-import Image from "next/image";
 import { useState, useEffect } from "react";
+import { BsLightningChargeFill } from "react-icons/bs";
 
 const ShimmerMessages = () => {
   const messages = [
     "Thinking...",
-    "Installing dependencies...",
+    "Loading...",
     "Generating...",
-    "Crafting components...",
-    "Optimizing layout...",
     "Analyzing your request...",
     "Building your website...",
-    "Adding Final touches...",
+    "Crafting components...",
+    "Optimizing layout...",
+    "Adding final touches...",
     "Almost ready...",
   ];
 
-  const [msgIdx, setMsgIdx] = useState(0);
+  const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      if (msgIdx == messages.length - 1) {
-        setMsgIdx(0);
-      }
-      setMsgIdx((prev) => prev + 1);
+      setCurrentMessageIndex((prev) => (prev + 1) % messages.length);
     }, 2000);
 
     return () => clearInterval(interval);
@@ -31,19 +27,20 @@ const ShimmerMessages = () => {
   return (
     <div className="flex items-center gap-2">
       <span className="text-base text-muted-foreground animate-pulse">
-        {messages[msgIdx]}
+        {messages[currentMessageIndex]}
       </span>
     </div>
   );
 };
+
 const MessageLoading = () => {
   return (
-    <div className="flex flex-col group px-2 pb-4 mb-4">
+    <div className="flex flex-col group px-2 pb-4">
       <div className="flex items-center gap-2 pl-2 mb-2">
-        <Gitlab />
-        <span className="text-sm font-medium tracking-widest">CODEX</span>
+        <BsLightningChargeFill className="size-4 shrink-0" />
+        <span className="text-sm font-medium tracking-wider">Kairo</span>
       </div>
-      <div className="flex flex-col gap-y-4">
+      <div className="pl-8 flex flex-col gap-y-4">
         <ShimmerMessages />
       </div>
     </div>

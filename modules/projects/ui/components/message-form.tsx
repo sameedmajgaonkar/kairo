@@ -20,7 +20,7 @@ const formSchema = z.object({
   prompt: z
     .string()
     .min(1, { message: "Prompt is required" })
-    .max(255, { message: "Prompt is too long" }),
+    .max(10000, { message: "Prompt is too long" }),
 });
 type FormType = z.infer<typeof formSchema>;
 

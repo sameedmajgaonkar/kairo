@@ -27,7 +27,7 @@ import * as z from "zod/v4";
 import "dotenv/config";
 
 const model = new ChatGoogleGenerativeAI({
-  model: "gemini-2.5-pro",
+  model: "gemini-3-flash-preview",
   temperature: 0,
 });
 
@@ -66,7 +66,7 @@ async function planner(state: z.infer<typeof AgentState>) {
       new SystemMessage(PLANNER_SYSTEM_PROMPT),
       new HumanMessage(
         state.userRequest +
-          `To call tools use this sandboxId: ${state.sandboxId}`
+        `To call tools use this sandboxId: ${state.sandboxId}`
       ),
     ],
   });
@@ -118,12 +118,24 @@ async function codeGenerator(state: z.infer<typeof AgentState>) {
     path: "./",
     sandboxId: state.sandboxId,
   });
+
+  // Build context from existing files if available (multi-turn support)
+  let existingContext = "";
+  if (state.existingFiles && state.existingFiles.length > 0) {
+    existingContext = `\n\nIMPORTANT — Existing Project Files (modify these, do NOT regenerate from scratch):\n`;
+    for (const file of state.existingFiles) {
+      existingContext += `\n--- ${file.path} ---\n${file.data}\n`;
+    }
+    existingContext += `\nYou MUST preserve the existing code structure and only modify what is needed to fulfill the user's request. Do not break existing functionality.`;
+  }
+
   let prompt =
     "User Request " +
     state.userRequest +
     " Take this plan into consideration: " +
     state["plan"] +
-    `Here is the folder structure: ${fileList}. Write files to appropriate path`;
+    `Here is the folder structure: ${fileList}. Write files to appropriate path` +
+    existingContext;
 
   if (state.resultAnalysis.hasError) {
     prompt += `Make sure not to repeat this error or try to solve this error. Here is the solution: ${state.resultAnalysis.solution}`;
@@ -149,10 +161,6 @@ async function codeExecutor(state: z.infer<typeof AgentState>) {
 
   const sandbox = await Sandbox.connect(state.sandboxId);
 
-  await sandbox.commands.run("sudo su");
-  await sandbox.commands.run("rm -rf .next");
-  await sandbox.commands.run("npm cache clean --force");
-
   const result = await sandbox.commands.run("bash /compile_page.sh", {
     background: true,
   });
@@ -161,17 +169,17 @@ async function codeExecutor(state: z.infer<typeof AgentState>) {
 
   return result.stderr
     ? {
-        stderr: result.stderr,
-        stdout: "",
-        status: "failure",
-        exitCode: result.exitCode,
-      }
+      stderr: result.stderr,
+      stdout: "",
+      status: "failure",
+      exitCode: result.exitCode,
+    }
     : {
-        stderr: "",
-        stdout: result.stdout,
-        status: "success",
-        exitCode: result.exitCode,
-      };
+      stderr: "",
+      stdout: result.stdout,
+      status: "success",
+      exitCode: result.exitCode,
+    };
 }
 
 const MAX_ATTEMPTS = 3;

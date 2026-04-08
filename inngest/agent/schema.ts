@@ -33,9 +33,18 @@ export const AgentState = z.object({
     .register(registry, MessagesZodMeta),
 
   userRequest: z.string(),
+  projectId: z.string().describe("ID of the project in the database"),
   sandboxId: z.string().describe("ID of the sandbox"),
   plan: z.string("Detailed plan to accomplish users task"),
   files: FileSchema,
+  existingFiles: z
+    .array(
+      z.object({
+        path: z.string().describe("path of the existing file"),
+        data: z.string().describe("Content of the existing file"),
+      })
+    )
+    .describe("Files already present in the sandbox from previous generations"),
   stdout: z.string(),
   stderr: z.string(),
   exitCode: z.number(),
@@ -45,7 +54,7 @@ export const AgentState = z.object({
     .enum([
       "planning",
       "coding",
-      "exeucting",
+      "executing",
       "reviewing",
       "success",
       "failure",

@@ -1,27 +1,28 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
+"use client";
+
+import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTheme } from "next-themes";
-import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ChevronDownIcon,
   ChevronLeftIcon,
-  EditIcon,
-  Gitlab,
   SunMoonIcon,
+  Trash2Icon,
 } from "lucide-react";
+import { BsLightningChargeFill } from "react-icons/bs";
 import { useTRPC } from "@/trpc/client";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuPortal,
-  DropdownMenuGroup,
   DropdownMenuRadioItem,
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuRadioGroup,
@@ -30,24 +31,47 @@ import {
 interface Props {
   projectId: string;
 }
+
 const ProjectHeader = ({ projectId }: Props) => {
   const trpc = useTRPC();
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const { data: project } = useSuspenseQuery(
     trpc.projects.getOne.queryOptions({ id: projectId })
   );
 
   const { theme, setTheme } = useTheme();
+
+  const deleteProject = useMutation(
+    trpc.projects.delete.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries(trpc.projects.getMany.queryOptions());
+        toast.success("Project deleted");
+        router.push("/");
+      },
+      onError: (error) => {
+        toast.error(error.message);
+      },
+    })
+  );
+
+  const handleDelete = () => {
+    if (window.confirm("Are you sure you want to delete this project? This action cannot be undone.")) {
+      deleteProject.mutate({ id: projectId });
+    }
+  };
+
   return (
-    <header className="p-4 flex justify-between items-center border-b">
+    <header className="p-2 flex justify-between items-center border-b">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
             size="sm"
-            className="focus-visible:ring-0 hover:bg-transparent hover:opacity-75 transition-opacity tracking-wider"
+            className="focus-visible:ring-0 hover:bg-transparent hover:opacity-75 transition-opacity pl-2!"
           >
-            Kairo
-            <span className="text-sm font-semibold">{project.name}</span>
+            <BsLightningChargeFill className="size-4" />
+            <span className="text-sm font-medium">{project.name}</span>
             <ChevronDownIcon />
           </Button>
         </DropdownMenuTrigger>
@@ -80,6 +104,15 @@ const ProjectHeader = ({ projectId }: Props) => {
               </DropdownMenuSubContent>
             </DropdownMenuPortal>
           </DropdownMenuSub>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            className="text-red-500 focus:text-red-500 focus:bg-red-500/10"
+            onClick={handleDelete}
+            disabled={deleteProject.isPending}
+          >
+            <Trash2Icon className="size-4" />
+            <span>Delete Project</span>
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </header>

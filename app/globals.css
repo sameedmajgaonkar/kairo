@@ -121,39 +121,3 @@
   }
 }
 
-.home {
-  background: radial-gradient(transparent 50%, black),
-    repeating-linear-gradient(
-      #252525,
-      #252525 1px,
-      transparent 1px,
-      transparent 130px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      #252525,
-      #252525 1px,
-      transparent 1px,
-      transparent 130px
-    );
-}
-
-.greet {
-  transform-origin: bottom right;
-  animation: wave 1s ease-in-out 2 both;
-}
-
-@keyframes wave {
-  0%,
-  100% {
-    transform: rotate(0deg);
-  }
-
-  25% {
-    transform: rotate(20deg);
-  }
-
-  75% {
-    transform: rotate(-15deg);
-  }
-}

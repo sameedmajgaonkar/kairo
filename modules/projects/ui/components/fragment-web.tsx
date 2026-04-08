@@ -1,12 +1,13 @@
 import { useState } from "react";
-import { ExternalLink, RefreshCcwIcon } from "lucide-react";
+import { ExternalLinkIcon, RefreshCcwIcon } from "lucide-react";
 import { Fragment } from "@/lib/generated/prisma/client";
 import { Button } from "@/components/ui/button";
-import Hint from "@/components/hint";
+import { Hint } from "@/components/hint";
 
 interface Props {
   fragment: Fragment;
 }
+
 const FragmentWeb = ({ fragment }: Props) => {
   const [fragmentKey, setFragmentKey] = useState(0);
   const [copied, setCopied] = useState(false);
@@ -20,21 +21,22 @@ const FragmentWeb = ({ fragment }: Props) => {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
   return (
     <div className="flex flex-col w-full h-full">
       <div className="p-2 border-b bg-sidebar flex items-center gap-x-2">
-        <Hint text="Refresh" align="start" side="bottom">
+        <Hint text="Refresh" side="bottom" align="start">
           <Button size="sm" variant="outline" onClick={onRefresh}>
             <RefreshCcwIcon />
           </Button>
         </Hint>
-        <Hint align="center" side="bottom" text="Copy">
+        <Hint text="Click to copy" side="bottom">
           <Button
             size="sm"
-            className="flex-1 justify-start font-normal"
-            disabled={!fragment.sandboxUrl || copied}
             variant="outline"
             onClick={handleCopy}
+            disabled={!fragment.sandboxUrl || copied}
+            className="flex-1 justify-start text-start font-normal"
           >
             <span className="truncate">{fragment.sandboxUrl}</span>
           </Button>
@@ -49,7 +51,7 @@ const FragmentWeb = ({ fragment }: Props) => {
               window.open(fragment.sandboxUrl, "_blank");
             }}
           >
-            <ExternalLink />
+            <ExternalLinkIcon />
           </Button>
         </Hint>
       </div>
@@ -59,7 +61,7 @@ const FragmentWeb = ({ fragment }: Props) => {
         sandbox="allow-forms allow-scripts allow-same-origin"
         loading="lazy"
         src={fragment.sandboxUrl}
-      ></iframe>
+      />
     </div>
   );
 };

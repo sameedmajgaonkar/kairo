@@ -1,4 +1,4 @@
-import { baseProcedure, createTRPCRouter } from "@/trpc/init";
+import { protectedProcedure, createTRPCRouter } from "@/trpc/init";
 import { z } from "zod";
 import { inngest } from "@/inngest/client";
 import prisma from "@/lib/prisma";
@@ -6,16 +6,29 @@ import { generateSlug } from "random-word-slugs";
 import { TRPCError } from "@trpc/server";
 
 export const projectsRouter = createTRPCRouter({
-  getOne: baseProcedure
+  getMany: protectedProcedure.query(async ({ ctx }) => {
+    const projects = await prisma.project.findMany({
+      where: {
+        userId: ctx.userId,
+      },
+      orderBy: {
+        updatedAt: "desc",
+      },
+    });
+    return projects;
+  }),
+
+  getOne: protectedProcedure
     .input(
       z.object({
         id: z.string().min(1, { message: "Id is required" }),
       })
     )
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const existingProject = await prisma.project.findUnique({
         where: {
           id: input.id,
+          userId: ctx.userId,
         },
       });
 
@@ -26,21 +39,23 @@ export const projectsRouter = createTRPCRouter({
         });
       return existingProject;
     }),
-  create: baseProcedure
+
+  create: protectedProcedure
     .input(
       z.object({
         value: z
           .string()
           .min(1, { message: "Prompt is required" })
-          .max(255, { message: "Prompt is too long" }),
+          .max(10000, { message: "Prompt is too long" }),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const createdProject = await prisma.project.create({
         data: {
           name: generateSlug(2, {
             format: "kebab",
           }),
+          userId: ctx.userId,
           messages: {
             create: {
               content: input.value,
@@ -59,5 +74,47 @@ export const projectsRouter = createTRPCRouter({
         },
       });
       return createdProject;
+    }),
+
+  delete: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().min(1, { message: "Project ID is required" }),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const project = await prisma.project.findUnique({
+        where: { id: input.id, userId: ctx.userId },
+      });
+
+      if (!project)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Project not found",
+        });
+
+      await prisma.project.delete({
+        where: { id: input.id },
+      });
+
+      return { success: true };
+    }),
+
+  getSteps: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string().min(1, { message: "Project ID is required" }),
+      })
+    )
+    .query(async ({ input }) => {
+      const steps = await prisma.agentStep.findMany({
+        where: {
+          projectId: input.projectId,
+        },
+        orderBy: {
+          createdAt: "asc",
+        },
+      });
+      return steps;
     }),
 });

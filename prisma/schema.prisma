@@ -27,9 +27,12 @@ enum MessageType {
 model Project {
   id        String    @id @default(uuid())
   name      String
+  userId    String
+  sandboxId String?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   messages  Message[]
+  steps     AgentStep[]
 }
 
 model Message {
@@ -53,4 +56,15 @@ model Fragment {
   sandboxUrl String
   title      String
   files      Json
+}
+
+model AgentStep {
+  id          String    @id @default(uuid())
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  stepType    String
+  label       String
+  detail      String?
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
 }

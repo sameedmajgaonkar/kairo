@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { TRPCReactProvider } from "@/trpc/client";
 import { Toaster } from "@/components/ui/sonner";
 import { ClerkProvider } from "@clerk/nextjs";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,7 +40,9 @@ export default function RootLayout({
               enableSystem
               disableTransitionOnChange
             >
-              <main className="h-screen mt-5 p-3">{children}</main>
+              <TooltipProvider>
+                {children}
+              </TooltipProvider>
               <Toaster />
             </ThemeProvider>
           </body>

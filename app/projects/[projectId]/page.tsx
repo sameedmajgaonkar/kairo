@@ -3,9 +3,11 @@ import { getQueryClient, trpc } from "@/trpc/server";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import React, { Suspense } from "react";
 
-export default async function ProjectPage(
-  props: PageProps<"/projects/[projectId]">
-) {
+interface ProjectPageProps {
+  params: Promise<{ projectId: string }>;
+}
+
+export default async function ProjectPage(props: ProjectPageProps) {
   const { projectId } = await props.params;
 
   const queryClient = getQueryClient();
